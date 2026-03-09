@@ -1,0 +1,1023 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Registro de Atenciones — Consulta Psicológica</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg:        #f5f2ee;
+      --surface:   #ffffff;
+      --border:    #ddd8d0;
+      --border-2:  #c8c0b4;
+      --text:      #1c1a18;
+      --muted:     #7a746a;
+      --accent:    #2d6a5f;
+      --accent-lt: #e8f2f0;
+      --accent-2:  #c4432a;
+      --warn:      #f5ebe6;
+      --radius:    10px;
+      --shadow:    0 2px 16px rgba(0,0,0,0.07);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 0;
+    }
+
+    /* ── HEADER ─────────────────────────────── */
+    header {
+      background: var(--accent);
+      color: #fff;
+      padding: 22px 32px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    header .logo-icon {
+      width: 42px; height: 42px;
+      background: rgba(255,255,255,0.15);
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px;
+    }
+    header h1 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.55rem;
+      font-weight: 600;
+      letter-spacing: 0.01em;
+    }
+    header p { font-size: 0.8rem; opacity: 0.75; margin-top: 2px; }
+
+    /* ── LAYOUT ──────────────────────────────── */
+    .container {
+      max-width: 780px;
+      margin: 0 auto;
+      padding: 32px 16px 64px;
+    }
+
+    /* ── MODE SELECTOR ───────────────────────── */
+    .mode-tabs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 28px;
+    }
+    .mode-tab {
+      background: var(--surface);
+      border: 2px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px 20px;
+      cursor: pointer;
+      transition: all 0.18s;
+      text-align: left;
+    }
+    .mode-tab:hover { border-color: var(--accent); }
+    .mode-tab.active {
+      border-color: var(--accent);
+      background: var(--accent-lt);
+    }
+    .mode-tab .tab-icon { font-size: 22px; margin-bottom: 8px; }
+    .mode-tab .tab-label {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.2rem;
+      font-weight: 600;
+      color: var(--accent);
+    }
+    .mode-tab .tab-desc { font-size: 0.78rem; color: var(--muted); margin-top: 3px; }
+
+    /* ── SEARCH BOX ──────────────────────────── */
+    #search-section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 22px 24px;
+      margin-bottom: 20px;
+      box-shadow: var(--shadow);
+    }
+    #search-section h3 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 14px;
+      color: var(--accent);
+    }
+    .search-row {
+      display: flex; gap: 10px;
+    }
+    .search-row input {
+      flex: 1;
+      padding: 11px 14px;
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.9rem;
+      background: var(--bg);
+      transition: border-color 0.15s;
+    }
+    .search-row input:focus { outline: none; border-color: var(--accent); }
+    .btn-search {
+      padding: 11px 20px;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 7px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.88rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: opacity 0.15s;
+    }
+    .btn-search:hover { opacity: 0.88; }
+
+    #search-results {
+      margin-top: 14px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+      display: none;
+    }
+    .result-item {
+      padding: 13px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border);
+      cursor: pointer;
+      transition: background 0.12s;
+      background: var(--surface);
+    }
+    .result-item:last-child { border-bottom: none; }
+    .result-item:hover { background: var(--accent-lt); }
+    .result-name { font-weight: 500; font-size: 0.92rem; }
+    .result-meta { font-size: 0.78rem; color: var(--muted); font-family: 'DM Mono', monospace; }
+    .result-action {
+      font-size: 0.78rem;
+      color: var(--accent);
+      font-weight: 500;
+    }
+
+    .patient-loaded-badge {
+      background: var(--accent-lt);
+      border: 1px solid var(--accent);
+      border-radius: 8px;
+      padding: 12px 16px;
+      margin-top: 14px;
+      display: none;
+      font-size: 0.84rem;
+      color: var(--accent);
+      font-weight: 500;
+    }
+
+    /* ── CARD ────────────────────────────────── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px 26px;
+      margin-bottom: 16px;
+      box-shadow: var(--shadow);
+    }
+    .card-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--accent);
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+    .card-title .section-num {
+      width: 24px; height: 24px;
+      background: var(--accent);
+      color: #fff;
+      border-radius: 50%;
+      font-size: 0.75rem;
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'DM Mono', monospace;
+    }
+
+    /* ── FORM GRID ───────────────────────────── */
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px 20px;
+    }
+    .form-grid .full { grid-column: 1 / -1; }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+    .field label {
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .field label .req { color: var(--accent-2); margin-left: 2px; }
+    .field input,
+    .field select,
+    .field textarea {
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.9rem;
+      background: var(--bg);
+      color: var(--text);
+      transition: border-color 0.15s;
+      width: 100%;
+    }
+    .field input:focus,
+    .field select:focus,
+    .field textarea:focus {
+      outline: none;
+      border-color: var(--accent);
+      background: #fff;
+    }
+    .field input:disabled,
+    .field select:disabled,
+    .field textarea:disabled {
+      background: #f0ede8;
+      color: var(--muted);
+      cursor: not-allowed;
+    }
+    .field textarea { resize: vertical; min-height: 80px; }
+
+    /* ── CUSTOM ITEMS ────────────────────────── */
+    #custom-items-container .custom-field {
+      margin-bottom: 14px;
+    }
+    #custom-items-container .custom-field label {
+      font-size: 0.8rem;
+      color: var(--muted);
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      display: block;
+      margin-bottom: 5px;
+    }
+    .custom-loading {
+      font-size: 0.85rem;
+      color: var(--muted);
+      font-style: italic;
+      padding: 10px 0;
+    }
+
+    /* ── SUBMIT ──────────────────────────────── */
+    .submit-row {
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+      margin-top: 8px;
+    }
+    .btn-reset {
+      padding: 13px 24px;
+      background: transparent;
+      border: 1px solid var(--border-2);
+      border-radius: 8px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.9rem;
+      cursor: pointer;
+      color: var(--muted);
+      transition: all 0.15s;
+    }
+    .btn-reset:hover { border-color: var(--accent-2); color: var(--accent-2); }
+    .btn-submit {
+      padding: 13px 32px;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.9rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: opacity 0.15s, transform 0.1s;
+      letter-spacing: 0.02em;
+    }
+    .btn-submit:hover { opacity: 0.9; }
+    .btn-submit:active { transform: scale(0.98); }
+    .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    /* ── TOAST ───────────────────────────────── */
+    #toast {
+      position: fixed;
+      bottom: 28px; right: 28px;
+      padding: 14px 22px;
+      border-radius: 10px;
+      font-size: 0.88rem;
+      font-weight: 500;
+      box-shadow: 0 6px 24px rgba(0,0,0,0.14);
+      transform: translateY(20px);
+      opacity: 0;
+      transition: all 0.3s;
+      z-index: 999;
+      max-width: 320px;
+    }
+    #toast.show { transform: translateY(0); opacity: 1; }
+    #toast.success { background: var(--accent); color: #fff; }
+    #toast.error { background: var(--accent-2); color: #fff; }
+
+    /* ── LOADING OVERLAY ─────────────────────── */
+    #loading-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(245,242,238,0.7);
+      backdrop-filter: blur(3px);
+      z-index: 500;
+      align-items: center;
+      justify-content: center;
+    }
+    #loading-overlay.show { display: flex; }
+    .spinner {
+      width: 44px; height: 44px;
+      border: 3px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── RESPONSIVE ──────────────────────────── */
+    @media (max-width: 560px) {
+      .form-grid { grid-template-columns: 1fr; }
+      .form-grid .full { grid-column: 1; }
+      .mode-tabs { grid-template-columns: 1fr; }
+      .container { padding: 20px 12px 48px; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo-icon">🧠</div>
+  <div>
+    <h1>Registro de Atenciones</h1>
+    <p>Consulta Psicológica — Sistema digital de registro diario</p>
+  </div>
+</header>
+
+<div class="container">
+
+  <!-- ── SELECCIÓN DE MODO ── -->
+  <div class="mode-tabs">
+    <button class="mode-tab active" id="tab-sesion" onclick="setMode('sesion')">
+      <div class="tab-icon">🔁</div>
+      <div class="tab-label">Sesión de paciente</div>
+      <div class="tab-desc">Paciente ya registrado — buscar y completar solo lo nuevo</div>
+    </button>
+    <button class="mode-tab" id="tab-ingreso" onclick="setMode('ingreso')">
+      <div class="tab-icon">➕</div>
+      <div class="tab-label">Ingreso de paciente</div>
+      <div class="tab-desc">Primera vez — completar todos los datos del paciente</div>
+    </button>
+  </div>
+
+  <!-- ── BÚSQUEDA (solo modo sesión) ── -->
+  <div id="search-section">
+    <h3>🔍 Buscar paciente existente</h3>
+    <div class="search-row">
+      <input type="text" id="search-input" placeholder="Nombre completo o RUT (ej: 12.345.678-9)" />
+      <button class="btn-search" onclick="searchPatient()">Buscar</button>
+    </div>
+    <div id="search-results"></div>
+    <div id="patient-loaded-badge" class="patient-loaded-badge">
+      ✅ Paciente cargado — complete solo los datos de esta sesión
+    </div>
+  </div>
+
+  <!-- ── SECCIÓN 1: DATOS DE LA SESIÓN ── -->
+  <div class="card">
+    <div class="card-title">
+      <span class="section-num">1</span>
+      Datos de la sesión
+    </div>
+    <div class="form-grid">
+      <div class="field">
+        <label>Fecha <span class="req">*</span></label>
+        <input type="date" id="fecha" required />
+      </div>
+      <div class="field">
+        <label>Profesional que atiende <span class="req">*</span></label>
+        <select id="profesional" required>
+          <option value="">Cargando…</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Tipo de atención <span class="req">*</span></label>
+        <select id="tipo_atencion" required>
+          <option value="">Cargando…</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Modalidad</label>
+        <select id="modalidad">
+          <option value="">Cargando…</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SECCIÓN 2: DATOS DEL PACIENTE ── -->
+  <div class="card">
+    <div class="card-title">
+      <span class="section-num">2</span>
+      Datos del paciente
+    </div>
+    <div class="form-grid">
+      <div class="field">
+        <label>Nombre completo <span class="req">*</span></label>
+        <input type="text" id="nombre" placeholder="Apellidos Nombre" required />
+      </div>
+      <div class="field">
+        <label>RUT <span class="req">*</span></label>
+        <input type="text" id="rut" placeholder="12.345.678-9" required />
+      </div>
+      <div class="field">
+        <label>Fecha de nacimiento</label>
+        <input type="date" id="fecha_nac" />
+      </div>
+      <div class="field">
+        <label>Edad</label>
+        <input type="number" id="edad" placeholder="años" min="0" max="120" />
+      </div>
+      <div class="field">
+        <label>Sexo</label>
+        <select id="sexo">
+          <option value="">Seleccionar…</option>
+          <option>Femenino</option>
+          <option>Masculino</option>
+          <option>No binario</option>
+          <option>Prefiere no indicar</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Teléfono</label>
+        <input type="tel" id="telefono" placeholder="+56 9 XXXX XXXX" />
+      </div>
+
+      <!-- Solo visible en modo ingreso -->
+      <div class="field ingreso-only" style="display:none">
+        <label>Correo electrónico</label>
+        <input type="email" id="email" placeholder="correo@ejemplo.cl" />
+      </div>
+      <div class="field ingreso-only" style="display:none">
+        <label>Dirección</label>
+        <input type="text" id="direccion" placeholder="Calle N°, Ciudad" />
+      </div>
+      <div class="field ingreso-only" style="display:none">
+        <label>Previsión de salud</label>
+        <select id="prevision">
+          <option value="">Seleccionar…</option>
+          <option>Fonasa A</option>
+          <option>Fonasa B</option>
+          <option>Fonasa C</option>
+          <option>Fonasa D</option>
+          <option>Isapre</option>
+          <option>Particular</option>
+          <option>Sin previsión</option>
+        </select>
+      </div>
+      <div class="field ingreso-only" style="display:none">
+        <label>Derivado desde</label>
+        <input type="text" id="derivado_desde" placeholder="Hospital, médico, auto-derivación…" />
+      </div>
+      <div class="field ingreso-only full" style="display:none">
+        <label>Motivo de consulta inicial</label>
+        <textarea id="motivo_consulta" placeholder="Descripción del motivo de consulta según el paciente…"></textarea>
+      </div>
+      <div class="field ingreso-only" style="display:none">
+        <label>Diagnóstico (CIE-10)</label>
+        <input type="text" id="diagnostico_ingreso" placeholder="F32.0 - Episodio depresivo leve…" />
+      </div>
+      <div class="field ingreso-only" style="display:none">
+        <label>Contacto de emergencia</label>
+        <input type="text" id="contacto_emergencia" placeholder="Nombre / Teléfono / Relación" />
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SECCIÓN 3: REGISTRO CLÍNICO DE LA SESIÓN ── -->
+  <div class="card">
+    <div class="card-title">
+      <span class="section-num">3</span>
+      Registro clínico de la sesión
+    </div>
+    <div class="form-grid">
+      <div class="field full">
+        <label>Evolución / Resumen de sesión</label>
+        <textarea id="evolucion" placeholder="Descripción del contenido, avances o dificultades de la sesión…" style="min-height:110px;"></textarea>
+      </div>
+      <div class="field full">
+        <label>Indicaciones / Plan terapéutico</label>
+        <textarea id="indicaciones" placeholder="Indicaciones para el paciente, tareas entre sesiones, cambios en el plan…"></textarea>
+      </div>
+      <div class="field">
+        <label>Diagnóstico actual (CIE-10)</label>
+        <input type="text" id="diagnostico_sesion" placeholder="F40.0, F32.1…" />
+      </div>
+      <div class="field">
+        <label>Próxima cita</label>
+        <input type="datetime-local" id="proxima_cita" />
+      </div>
+      <div class="field">
+        <label>N° de sesión</label>
+        <input type="number" id="num_sesion" min="1" placeholder="Ej: 5" />
+      </div>
+      <div class="field">
+        <label>Estado</label>
+        <select id="estado_sesion">
+          <option value="">Seleccionar…</option>
+          <option>Atendido</option>
+          <option>No asistió</option>
+          <option>Canceló con aviso</option>
+          <option>Reagendado</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SECCIÓN 4: ÍTEMS PERSONALIZADOS ── -->
+  <div class="card" id="custom-card">
+    <div class="card-title">
+      <span class="section-num">4</span>
+      Ítems personalizados del equipo
+    </div>
+    <div id="custom-items-container">
+      <p class="custom-loading">⏳ Cargando ítems personalizados…</p>
+    </div>
+  </div>
+
+  <!-- ── BOTONES ── -->
+  <div class="submit-row">
+    <button class="btn-reset" onclick="resetForm()">Limpiar formulario</button>
+    <button class="btn-submit" id="btn-submit" onclick="submitForm()">
+      Guardar registro →
+    </button>
+  </div>
+
+</div><!-- /container -->
+
+<!-- ── LOADING OVERLAY ── -->
+<div id="loading-overlay">
+  <div class="spinner"></div>
+</div>
+
+<!-- ── TOAST ── -->
+<div id="toast"></div>
+
+<script>
+// ════════════════════════════════════════════════════════
+//  CONFIGURACIÓN — reemplazar con la URL de tu Apps Script
+// ════════════════════════════════════════════════════════
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwf19v82LrpYQ5Df4d9O-LzSOG0QuIGU68IynilUVJEBuO3VczrmllKkfEtQxpFFc_N/exec";
+
+// ════════════════════════════════════════════════════════
+//  ESTADO GLOBAL
+// ════════════════════════════════════════════════════════
+let currentMode = "sesion";       // "sesion" | "ingreso"
+let loadedPatientId = null;       // ID del paciente cargado desde búsqueda
+let customItems = [];             // campos personalizados
+
+// ── Inicialización ──────────────────────────────────────
+document.addEventListener("DOMContentLoaded", () => {
+  setTodayDate();
+  loadCustomItems();
+  loadDropdowns();
+  setMode("sesion");
+});
+
+function setTodayDate() {
+  const today = new Date().toISOString().split("T")[0];
+  document.getElementById("fecha").value = today;
+}
+
+// ════════════════════════════════════════════════════════
+//  MODO INGRESO vs SESIÓN
+// ════════════════════════════════════════════════════════
+function setMode(mode) {
+  currentMode = mode;
+  loadedPatientId = null;
+
+  document.getElementById("tab-sesion").classList.toggle("active", mode === "sesion");
+  document.getElementById("tab-ingreso").classList.toggle("active", mode === "ingreso");
+  document.getElementById("search-section").style.display = mode === "sesion" ? "block" : "none";
+
+  const ingresoFields = document.querySelectorAll(".ingreso-only");
+  ingresoFields.forEach(f => f.style.display = mode === "ingreso" ? "flex" : "none");
+
+  // En ingreso, todos los campos son editables
+  if (mode === "ingreso") {
+    setPatientFieldsDisabled(false);
+    document.getElementById("patient-loaded-badge").style.display = "none";
+    document.getElementById("search-results").style.display = "none";
+  }
+
+  resetPatientFields();
+}
+
+function setPatientFieldsDisabled(disabled) {
+  const ids = ["nombre","rut","fecha_nac","edad","sexo","telefono",
+                "email","direccion","prevision","derivado_desde","contacto_emergencia"];
+  ids.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.disabled = disabled;
+  });
+}
+
+// ════════════════════════════════════════════════════════
+//  BÚSQUEDA DE PACIENTE
+// ════════════════════════════════════════════════════════
+async function searchPatient() {
+  const q = document.getElementById("search-input").value.trim();
+  if (!q) { showToast("Ingresa un nombre o RUT para buscar", "error"); return; }
+
+  showLoading(true);
+  try {
+    const url = `${SCRIPT_URL}?action=searchPatient&q=${encodeURIComponent(q)}`;
+    const res = await fetch(url);
+    const data = await res.json();
+    renderSearchResults(data.patients || []);
+  } catch (e) {
+    showToast("Error al buscar paciente. Verifica la conexión.", "error");
+  } finally {
+    showLoading(false);
+  }
+}
+
+function renderSearchResults(patients) {
+  const container = document.getElementById("search-results");
+  if (patients.length === 0) {
+    container.innerHTML = `<div class="result-item"><span class="result-name" style="color:var(--muted)">No se encontraron pacientes con ese criterio</span></div>`;
+    container.style.display = "block";
+    return;
+  }
+  container.innerHTML = patients.map(p => `
+    <div class="result-item" onclick="loadPatient('${p.id}')">
+      <div>
+        <div class="result-name">${p.nombre}</div>
+        <div class="result-meta">${p.rut} · ${p.edad ? p.edad + ' años' : ''} · ${p.diagnostico || ''}</div>
+      </div>
+      <span class="result-action">Seleccionar →</span>
+    </div>
+  `).join("");
+  container.style.display = "block";
+}
+
+async function loadPatient(patientId) {
+  showLoading(true);
+  try {
+    const url = `${SCRIPT_URL}?action=getPatient&id=${patientId}`;
+    const res = await fetch(url);
+    const data = await res.json();
+    fillPatientData(data.patient);
+    loadedPatientId = patientId;
+    document.getElementById("search-results").style.display = "none";
+    const badge = document.getElementById("patient-loaded-badge");
+    badge.style.display = "block";
+    badge.textContent = `✅ ${data.patient.nombre} cargado — complete solo los datos de esta sesión`;
+    setPatientFieldsDisabled(true);
+    showToast("Paciente cargado correctamente", "success");
+  } catch (e) {
+    showToast("Error al cargar el paciente", "error");
+  } finally {
+    showLoading(false);
+  }
+}
+
+function fillPatientData(p) {
+  const set = (id, val) => { const el = document.getElementById(id); if (el) el.value = val || ""; };
+  set("nombre",   p.nombre);
+  set("rut",      p.rut);
+  set("fecha_nac",p.fecha_nac);
+  set("edad",     p.edad);
+  set("sexo",     p.sexo);
+  set("telefono", p.telefono);
+  set("email",    p.email);
+  set("direccion",p.direccion);
+  set("prevision",p.prevision);
+  set("derivado_desde", p.derivado_desde);
+  set("contacto_emergencia", p.contacto_emergencia);
+  set("diagnostico_sesion", p.diagnostico);
+  set("num_sesion", (parseInt(p.num_sesion || 0) + 1));
+}
+
+// ════════════════════════════════════════════════════════
+//  LISTAS DESPLEGABLES CONFIGURABLES
+// ════════════════════════════════════════════════════════
+async function loadDropdowns() {
+  const defaults = {
+    profesional:   ["Psicóloga Titular", "Psicólogo Asociado", "Practicante Supervisado"],
+    tipo_atencion: ["Primera consulta", "Consulta de seguimiento", "Evaluación psicológica",
+                    "Psicoterapia individual", "Psicoterapia grupal", "Psicoterapia familiar/pareja",
+                    "Intervención en crisis", "Alta", "Derivación"],
+    modalidad:     ["Presencial", "Videollamada", "Teléfono"],
+  };
+  try {
+    const res  = await fetch(`${SCRIPT_URL}?action=getDropdowns`);
+    const data = await res.json();
+    fillSelect("profesional",   data.profesional   || defaults.profesional);
+    fillSelect("tipo_atencion", data.tipo_atencion || defaults.tipo_atencion);
+    fillSelect("modalidad",     data.modalidad     || defaults.modalidad);
+  } catch (e) {
+    // Si falla la red, usar valores por defecto
+    fillSelect("profesional",   defaults.profesional);
+    fillSelect("tipo_atencion", defaults.tipo_atencion);
+    fillSelect("modalidad",     defaults.modalidad);
+  }
+}
+
+function fillSelect(id, options) {
+  const sel = document.getElementById(id);
+  if (!sel) return;
+  sel.innerHTML = '<option value="">Seleccionar…</option>';
+  options.forEach(opt => {
+    const o = document.createElement("option");
+    o.value = opt; o.textContent = opt;
+    sel.appendChild(o);
+  });
+}
+
+// ════════════════════════════════════════════════════════
+//  ÍTEMS PERSONALIZADOS
+// ════════════════════════════════════════════════════════
+async function loadCustomItems() {
+  try {
+    const url = `${SCRIPT_URL}?action=getCustomItems`;
+    const res = await fetch(url);
+    const data = await res.json();
+    customItems = data.items || [];
+    renderCustomItems();
+  } catch (e) {
+    document.getElementById("custom-items-container").innerHTML =
+      `<p class="custom-loading" style="color:var(--muted)">No hay ítems personalizados configurados aún.</p>`;
+  }
+}
+
+function renderCustomItems() {
+  const container = document.getElementById("custom-items-container");
+  if (customItems.length === 0) {
+    container.innerHTML = `<p class="custom-loading">Agrega preguntas personalizadas en la hoja <strong>Items_Personalizados</strong> del Google Sheet.</p>`;
+    return;
+  }
+  container.innerHTML = "";
+  const grid = document.createElement("div");
+  grid.className = "form-grid";
+
+  customItems.forEach((item, i) => {
+    const wrapper = document.createElement("div");
+    wrapper.className = `field${item.ancho === "completo" ? " full" : ""}`;
+
+    const label = document.createElement("label");
+    label.textContent = item.etiqueta;
+    if (item.requerido === "si") {
+      const req = document.createElement("span");
+      req.className = "req"; req.textContent = " *";
+      label.appendChild(req);
+    }
+    wrapper.appendChild(label);
+
+    let input;
+    switch (item.tipo) {
+      case "texto":
+        input = document.createElement("input");
+        input.type = "text";
+        input.placeholder = item.placeholder || "";
+        break;
+      case "numero":
+        input = document.createElement("input");
+        input.type = "number";
+        input.placeholder = item.placeholder || "";
+        if (item.min) input.min = item.min;
+        if (item.max) input.max = item.max;
+        break;
+      case "escala":
+        input = document.createElement("select");
+        const defOpt = document.createElement("option");
+        defOpt.value = ""; defOpt.textContent = "Seleccionar…";
+        input.appendChild(defOpt);
+        const min = parseInt(item.min || 0);
+        const max = parseInt(item.max || 10);
+        for (let v = min; v <= max; v++) {
+          const o = document.createElement("option");
+          o.value = v; o.textContent = v;
+          input.appendChild(o);
+        }
+        break;
+      case "seleccion":
+        input = document.createElement("select");
+        const d = document.createElement("option");
+        d.value = ""; d.textContent = "Seleccionar…";
+        input.appendChild(d);
+        (item.opciones || "").split(",").forEach(op => {
+          const o = document.createElement("option");
+          o.value = op.trim(); o.textContent = op.trim();
+          input.appendChild(o);
+        });
+        break;
+      case "si_no":
+        input = document.createElement("select");
+        [["", "Seleccionar…"], ["Si","Sí"], ["No","No"], ["NC","No corresponde"]].forEach(([v,t]) => {
+          const o = document.createElement("option");
+          o.value = v; o.textContent = t;
+          input.appendChild(o);
+        });
+        break;
+      case "texto_largo":
+        input = document.createElement("textarea");
+        input.placeholder = item.placeholder || "";
+        break;
+      default:
+        input = document.createElement("input");
+        input.type = "text";
+    }
+    input.id = `custom_${i}`;
+    input.dataset.key = item.clave;
+    if (item.requerido === "si") input.required = true;
+    wrapper.appendChild(input);
+    grid.appendChild(wrapper);
+  });
+
+  container.appendChild(grid);
+}
+
+// ════════════════════════════════════════════════════════
+//  ENVÍO DEL FORMULARIO
+// ════════════════════════════════════════════════════════
+async function submitForm() {
+  if (!validateForm()) return;
+
+  const payload = buildPayload();
+  showLoading(true);
+  document.getElementById("btn-submit").disabled = true;
+
+  try {
+    const res = await fetch(SCRIPT_URL, {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+    const data = await res.json();
+    if (data.success) {
+      showToast("✅ Registro guardado correctamente", "success");
+      resetForm();
+    } else {
+      showToast("Error al guardar: " + (data.error || "Intenta nuevamente"), "error");
+    }
+  } catch (e) {
+    showToast("Error de conexión. Verifica tu internet.", "error");
+  } finally {
+    showLoading(false);
+    document.getElementById("btn-submit").disabled = false;
+  }
+}
+
+function buildPayload() {
+  const g = id => (document.getElementById(id) || {}).value || "";
+
+  const customData = {};
+  customItems.forEach((item, i) => {
+    const el = document.getElementById(`custom_${i}`);
+    if (el) customData[item.clave] = el.value;
+  });
+
+  return {
+    action:        currentMode === "ingreso" ? "registerIngreso" : "registerSesion",
+    modo:          currentMode,
+    paciente_id:   loadedPatientId,
+    // Sesión
+    fecha:         g("fecha"),
+    profesional:   g("profesional"),
+    tipo_atencion: g("tipo_atencion"),
+    modalidad:     g("modalidad"),
+    // Paciente
+    nombre:        g("nombre"),
+    rut:           g("rut"),
+    fecha_nac:     g("fecha_nac"),
+    edad:          g("edad"),
+    sexo:          g("sexo"),
+    telefono:      g("telefono"),
+    email:         g("email"),
+    direccion:     g("direccion"),
+    prevision:     g("prevision"),
+    derivado_desde: g("derivado_desde"),
+    motivo_consulta: g("motivo_consulta"),
+    diagnostico_ingreso: g("diagnostico_ingreso"),
+    contacto_emergencia: g("contacto_emergencia"),
+    // Clínico
+    evolucion:     g("evolucion"),
+    indicaciones:  g("indicaciones"),
+    diagnostico:   g("diagnostico_sesion"),
+    proxima_cita:  g("proxima_cita"),
+    num_sesion:    g("num_sesion"),
+    estado_sesion: g("estado_sesion"),
+    // Custom
+    custom:        customData,
+    timestamp:     new Date().toISOString(),
+  };
+}
+
+// ════════════════════════════════════════════════════════
+//  VALIDACIÓN
+// ════════════════════════════════════════════════════════
+function validateForm() {
+  const required = [
+    { id: "fecha",       label: "Fecha" },
+    { id: "profesional", label: "Profesional" },
+    { id: "tipo_atencion", label: "Tipo de atención" },
+    { id: "nombre",      label: "Nombre del paciente" },
+    { id: "rut",         label: "RUT" },
+  ];
+  for (const f of required) {
+    const el = document.getElementById(f.id);
+    if (!el || !el.value.trim()) {
+      showToast(`⚠️ El campo "${f.label}" es obligatorio`, "error");
+      el && el.focus();
+      return false;
+    }
+  }
+  if (currentMode === "sesion" && !loadedPatientId) {
+    showToast("⚠️ Busca y selecciona un paciente antes de guardar", "error");
+    return false;
+  }
+  return true;
+}
+
+// ════════════════════════════════════════════════════════
+//  RESET
+// ════════════════════════════════════════════════════════
+function resetForm() {
+  const form_ids = [
+    "fecha","profesional","tipo_atencion","modalidad",
+    "nombre","rut","fecha_nac","edad","sexo","telefono",
+    "email","direccion","prevision","derivado_desde",
+    "motivo_consulta","diagnostico_ingreso","contacto_emergencia",
+    "evolucion","indicaciones","diagnostico_sesion",
+    "proxima_cita","num_sesion","estado_sesion","search-input"
+  ];
+  form_ids.forEach(id => { const el = document.getElementById(id); if (el) el.value = ""; });
+  setTodayDate();
+  customItems.forEach((_, i) => {
+    const el = document.getElementById(`custom_${i}`);
+    if (el) el.value = "";
+  });
+  loadedPatientId = null;
+  document.getElementById("patient-loaded-badge").style.display = "none";
+  document.getElementById("search-results").style.display = "none";
+  setPatientFieldsDisabled(false);
+}
+
+function resetPatientFields() {
+  const ids = ["nombre","rut","fecha_nac","edad","sexo","telefono",
+               "email","direccion","prevision","derivado_desde","contacto_emergencia"];
+  ids.forEach(id => { const el = document.getElementById(id); if (el) el.value = ""; });
+}
+
+// ════════════════════════════════════════════════════════
+//  UI HELPERS
+// ════════════════════════════════════════════════════════
+function showLoading(show) {
+  const ov = document.getElementById("loading-overlay");
+  ov.style.display = show ? "flex" : "none";
+}
+
+let toastTimer;
+function showToast(msg, type = "success") {
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.className = `show ${type}`;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { t.className = ""; }, 3800);
+}
+
+// Enter key en búsqueda
+document.addEventListener("DOMContentLoaded", () => {
+  document.getElementById("search-input")
+    .addEventListener("keydown", e => { if (e.key === "Enter") searchPatient(); });
+});
+
+// Auto-calcular edad desde fecha de nacimiento
+document.addEventListener("DOMContentLoaded", () => {
+  document.getElementById("fecha_nac").addEventListener("change", e => {
+    const dob = new Date(e.target.value);
+    if (isNaN(dob)) return;
+    const age = Math.floor((new Date() - dob) / (365.25 * 24 * 3600 * 1000));
+    document.getElementById("edad").value = age;
+  });
+});
+</script>
+</body>
+</html>
